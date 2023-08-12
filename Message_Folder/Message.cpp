@@ -23,6 +23,23 @@ Message& Message::operator=(const Message& rm)
 	return *this;
 }
 
+Message::Message(Message&& rm)
+{
+	contents = STD move(rm.contents);
+	moveFolders(&rm);
+}
+
+Message& Message::operator=(Message&& rm)
+{
+	if (this != &rm)
+	{
+		remove2Folders();
+		contents = STD move(rm.contents);
+		moveFolders(&rm);
+	}
+	return *this;
+}
+
 void Message::save(Folder& rf)
 {
 	folders.insert(&rf);
@@ -49,6 +66,17 @@ void Message::remove2Folders()
 	{
 		f->remMsg(this);
 	}
+}
+
+void Message::moveFolders(Message* rm)
+{
+	folders = STD move(rm->folders);
+	for (auto f : folders)
+	{
+		f->remMsg(rm);
+		f->addMsg(this);
+	}
+	rm->folders.clear();
 }
 
 void swap(Message& lm, Message& rm) {
